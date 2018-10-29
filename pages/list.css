@@ -1,0 +1,22 @@
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+}
+.list {
+  background: #fafafa;
+}
+th {
+  text-transform: uppercase;
+  /* color: #ffffff; */
+  background-color: #ffffff;
+}
+thead {
+  border-bottom: 1px solid black;
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+}
+.openContact:hover {
+  background: #dddddd;
+  cursor: pointer;
+}
