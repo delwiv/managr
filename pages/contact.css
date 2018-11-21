@@ -1,0 +1,25 @@
+fieldset {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: row;
+}
+label {
+  flex: 1;
+}
+
+input {
+  flex: 3;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+.text {
+  height: 8rem !important;
+}

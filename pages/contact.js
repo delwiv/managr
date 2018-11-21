@@ -1,61 +1,97 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 
-import fetch from 'isomorphic-unfetch'
 import React, { Component } from 'react'
-import PropTypes from 'prop-types'
+import T from 'prop-types'
+import { connect } from 'react-redux'
+import { equals } from 'ramda'
 
-import Link from 'next/link'
-
-const API_URL = 'http://localhost:3038'
-
-const fetchContact = async id => {
-  const data = await fetch(`${API_URL}/contacts/${id}`, { cors: true })
-  return data.json()
-}
+import { viewContact, updateContact, deleteContact } from '../lib/contacts'
+import './contact.css'
 
 const labelStyle = {
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: 'stretch',
   alignItems: 'stretch',
 }
 
 class Contact extends Component {
   static propTypes = {
-    classes: PropTypes.object.isRequired,
-    contact: PropTypes.object.isRequired,
+    contact: T.object.isRequired,
+    loading: T.bool,
+    viewContact: T.func.isRequired,
+    updateContact: T.func.isRequired,
+    deleteContact: T.func.isRequired,
+    contactId: T.string.isRequired,
   }
+
   static getInitialProps = async params => {
-    console.log({ params })
-    const contact = await fetchContact(params.query.contactId)
-    return { contact }
+    return { contactId: params.query.contactId }
   }
+
   constructor(props) {
     super(props)
     this.state = { contact: props.contact }
+    this.props.viewContact(this.props.contactId)
+  }
+
+  componentDidUpdate = prevProps => {
+    if (!equals(prevProps.contact, this.props.contact)) {
+      this.setState({ contact: this.props.contact })
+    }
+  }
+
+  componentDidMount() {
+    try {
+      window.M.AutoInit()
+    } catch (err) {}
   }
 
   handleChange = field => event => {
-    console.log({ [field]: event.target.value })
+    this.setState({
+      contact: {
+        ...this.state.contact,
+        [field]: event.target.value,
+      },
+    })
   }
 
-  getDepartment = () => {
-    return this.state.contact.departement || '44 - Loire Atlantique'
+  getInput = contact => (field, custom) => {
+    const label = custom || `${field[0].toUpperCase()}${field.slice(1)}`
+    return (
+      <div className="input-group">
+        <label htmlFor={field} style={labelStyle}>
+          {label}
+        </label>
+        <input type="text" name={field} id={field} value={contact[field]} onChange={this.handleChange(field)} />
+      </div>
+    )
+  }
+
+  updateContact = () => {
+    this.props.updateContact(this.state.contact)
+  }
+
+  deleteContact = () => {
+    this.props.deleteContact(this.state.contact._id)
   }
 
   render() {
     const {
       state: { contact },
+      updateContact,
+      deleteContact,
       handleChange,
-      getDepartment,
     } = this
 
-    console.log({ contact })
+    const getInput = this.getInput(contact)
+    const hasChanged = !equals(contact, this.props.contact)
 
     return (
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
           flexDirection: 'column',
         }}
       >
@@ -68,8 +104,16 @@ class Contact extends Component {
             {contact.cp} {contact.ville}
           </strong>
         </p>
-        <div>
-          <form
+        <form
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            alignItems: 'center',
+            flex: 1,
+          }}
+        >
+          <div
             style={{
               display: 'flex',
               flexDirection: 'row',
@@ -82,56 +126,24 @@ class Contact extends Component {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
+                alignItems: 'stretch',
                 flex: 1,
               }}
             >
               <fieldset>
                 <legend>Adresse</legend>
-
-                <label style={labelStyle}>
-                  nom
-                  <input type="text" name="nom" value={contact.nom} onChange={handleChange('nom')} />
-                </label>
-                <label style={labelStyle}>
-                  adresse
-                  <input type="text" name="adresse" value={contact.adresse} onChange={handleChange('adresse')} />
-                </label>
-                <label style={labelStyle}>
-                  cp
-                  <input type="text" name="cp" value={contact.cp} onChange={handleChange('cp')} />
-                </label>
-                <label style={labelStyle}>
-                  departement
-                  <input
-                    type="text"
-                    name="departement"
-                    value={contact.departement}
-                    onChange={handleChange('departement')}
-                  />
-                </label>
-                <label style={labelStyle}>
-                  ville
-                  <input type="text" name="ville" value={contact.ville} onChange={handleChange('ville')} />
-                </label>
+                {getInput('nom')}
+                {getInput('adresse')}
+                {getInput('cp')}
+                {getInput('departement')}
+                {getInput('ville')}
               </fieldset>
               <fieldset>
                 <legend>Infos</legend>
-                <label style={labelStyle}>
-                  cible
-                  <input type="text" value={contact.cible} name="cible" onChange={handleChange('cible')} />
-                </label>
-                <label style={labelStyle}>
-                  vu
-                  <input type="text" value={contact.vu} name="vu" onChange={handleChange('vu')} />
-                </label>
-                <label style={labelStyle}>
-                  date
-                  <input type="text" value={contact.date} name="date" onChange={handleChange('date')} />
-                </label>
-                <label style={labelStyle}>
-                  mois
-                  <input type="text" value={contact.mois} name="mois" onChange={handleChange('mois')} />
-                </label>
+                {getInput('cible')}
+                {getInput('vu')}
+                {getInput('date')}
+                {getInput('mois')}
               </fieldset>
             </div>
             <div
@@ -143,72 +155,74 @@ class Contact extends Component {
             >
               <fieldset>
                 <legend>Responsable</legend>
-                <label style={labelStyle}>
-                  Nom
-                  <input
-                    type="text"
-                    value={contact.responsable}
-                    name="Nom_resp1"
-                    onChange={handleChange('responsable1')}
-                  />
-                </label>
-                <label style={labelStyle}>
-                  Tel
-                  <input type="text" value={contact.tel_pro} name="Tel_resp1" onChange={handleChange('tel1')} />
-                </label>
-                <label style={labelStyle}>
-                  Mail
-                  <input type="text" value={contact.mail} name="Mail_resp1" onChange={handleChange('mail1')} />
-                </label>
+                {getInput('responsable', 'Nom')}
+                {getInput('tel_pro', 'Tel')}
+                {getInput('mail', 'Mail')}
               </fieldset>
               <fieldset>
                 <legend>Responsable 2</legend>
-                <label style={labelStyle}>
-                  Nom
-                  <input type="text" name="Nom_resp2" onChange={handleChange('responsable2')} />
-                </label>
-                <label style={labelStyle}>
-                  Tel
-                  <input type="text" value={contact.tel_perso} name="Tel_resp2" onChange={handleChange('tel2')} />
-                </label>
-                <label style={labelStyle}>
-                  Mail
-                  <input type="text" name="Mail_resp2" onChange={handleChange('mail2')} />
-                </label>
+                {getInput('responsable2', 'Nom')}
+                {getInput('tel_perso', 'Tel')}
+                {getInput('mail2', 'Mail')}
               </fieldset>
               <fieldset>
                 <legend>Responsable 3</legend>
-                <label style={labelStyle}>
-                  Nom
-                  <input type="text" name="Nom_resp3" onChange={handleChange('responsable3')} />
-                </label>
-                <label style={labelStyle}>
-                  Tel
-                  <input type="text" name="Tel_resp3" onChange={handleChange('tel3')} />
-                </label>
-                <label style={labelStyle}>
-                  Mail
-                  <input type="text" name="Mail_resp3" onChange={handleChange('mail3')} />
-                </label>
+                {getInput('responsable3', 'Nom')}
+                {getInput('tel3', 'Tel')}
+                {getInput('mail3', 'Mail')}
               </fieldset>
             </div>
-          </form>
-        </div>
-        <div
-          style={{
-            width: '50%',
-            alignSelf: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        />
-        {/*<Button variant="contained" color="primary">
-                  Do nothing button
-                </Button>*/}
+          </div>
+          <div
+            style={{
+              width: '90%',
+              // alignSelf: 'center',
+              display: 'flex',
+              flex: 1,
+              flexDirection: 'column',
+              // justifyContent: 'center',
+            }}
+          >
+            <fieldset>
+              <legend>Notes</legend>
+              <textarea className="text" rows={8} value={contact.notes} onChange={handleChange('notes')} />
+            </fieldset>
+          </div>
+          <div className="controls">
+            <input
+              type="button"
+              className="waves-effect waves-light btn red"
+              id="delete"
+              value="Supprimer"
+              onClick={deleteContact}
+            />
+            <input
+              type="button"
+              className="waves-effect waves-light btn blue"
+              disabled={!hasChanged}
+              onClick={updateContact}
+              id="save"
+              value="Sauver"
+            />
+          </div>
+        </form>
       </div>
     )
   }
 }
 
-export default Contact
+const mapStateToProps = state => ({
+  contact: state.current,
+  loading: state.loadingContact,
+})
+
+const mapDispatchToProps = dispatch => ({
+  viewContact: params => dispatch(viewContact(params)),
+  updateContact: params => dispatch(updateContact(params)),
+  deleteContact: params => dispatch(deleteContact(params)),
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Contact)

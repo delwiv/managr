@@ -1,0 +1,19 @@
+{
+  "API_URL": "http://localhost:3038",
+  "PAGINATION": "50",
+  "months": [
+    "Ignorer",
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre"
+  ]
+}

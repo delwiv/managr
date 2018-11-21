@@ -1,0 +1,20 @@
+.nav-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.material-icons {
+  display: inline-block !important;
+}
+
+.progress {
+  margin: 0 !important;
+  background-color: #505050 !important;
+}
+
+[type='checkbox']:before,
+[type='checkbox']:after {
+  top: 10px !important;
+}

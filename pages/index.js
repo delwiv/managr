@@ -1,52 +1,61 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 
 import React from 'react'
-import PropTypes from 'prop-types'
+import ReactDOM from 'react-dom'
+import T from 'prop-types'
 import Link from 'next/link'
 import fetch from 'isomorphic-unfetch'
-import qs from 'querystring'
 import Router from 'next/router'
 import './list.css'
-// import VisibilitySensor from 'react-visibility-sensor'
+import { connect } from 'react-redux'
+import { Table, Input } from 'react-materialize'
+import debounce from 'lodash.debounce'
 
-const API_URL = 'http://localhost:3038'
+import { loadContacts, setCurrent } from '../lib/contacts'
+import { months } from '../src/config'
 
 const isClient = typeof window !== 'undefined'
 
-const styles = theme => ({
-  root: {
-    textAlign: 'center',
-    paddingTop: theme.spacing.unit * 20,
-  },
-})
-
-const fetchContacts = async (params = {}) => {
-  if (!params.limit && params.limit !== 0) {
-    params.limit = 500
-  }
-  const data = await fetch(`${API_URL}/contacts?${qs.stringify(params)}`, { cors: true })
-  return data.json()
-}
-
 class Index extends React.Component {
-  static async getInitialProps() {
-    const data = await fetchContacts()
-    return {
-      contacts: data,
-      loadingContacts: false,
-    }
+  static propTypes = {
+    contacts: T.array.isRequired,
+    current: T.number,
+    query: T.string,
+    loading: T.bool,
+    lazyLoad: T.bool,
+    count: T.number,
+    loadContacts: T.func.isRequired,
+    setCurrent: T.func.isRequired,
   }
 
-  state = { contacts: [] }
+  // state = { contacts: [] }
 
   constructor(props) {
     super(props)
     this.state = { contacts: props.contacts }
+    this.loadContacts = params => this.props.loadContacts(params)
+  }
+
+  componentDidUpdate() {
+    if (this.props.contacts.length !== this.state.contacts.length) {
+      this.setState({ contacts: this.props.contacts })
+    }
   }
 
   componentDidMount() {
     if (isClient) {
       window.addEventListener('scroll', this.onScroll, false)
+      try {
+        window.M.AutoInit()
+      } catch (err) {}
+    }
+    if (!this.props.contacts.length) {
+      return this.loadContacts()
+    }
+    if (this.props.current) {
+      const element = document.getElementById(`contact_${this.props.current}`)
+
+      element.scrollIntoView({ block: 'center' })
     }
   }
 
@@ -57,11 +66,11 @@ class Index extends React.Component {
   }
 
   onScroll = () => {
+    if (!this.props.lazyLoad) return
     if (this.lastCall && Date.now() < this.lastCall + 50) return
-    console.log('on scroll')
     this.lastCall = Date.now()
     if (
-      !this.state.loadingContacts &&
+      !this.props.loading &&
       window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 &&
       this.props.contacts.length
     ) {
@@ -80,27 +89,43 @@ class Index extends React.Component {
     console.log({ result })
   }
 
-  loadMore = async () => {
-    this.setState({ loadingContacts: true })
-    const skip = this.state.contacts.length
-    console.log({ skip })
-    const contacts = await fetchContacts({ skip })
-    this.setState({
-      contacts: this.state.contacts.concat(contacts),
-      loadingContacts: false,
-    })
-  }
+  loadMore = debounce(() => {
+    const skip = this.props.contacts.length
+    if (skip === this.props.count) {
+      return
+    }
+    const q = this.props.query
+    this.loadContacts({ skip, q })
+  }, 100)
 
-  onClickContact = contactId => {
-    console.log({ contactId })
+  onClickContact = (contactId, i) => {
+    this.props.setCurrent(i)
     Router.push(`/contact?contactId=${contactId}`)
   }
 
-  getRow = (contact, i) => (
-    <tr key={contact._id} className="row">
+  selectAll = e => {
+    const checked = e.target.checked
+    this.setState({ contacts: this.state.contacts.map(c => ({ ...c, checked })) })
+  }
+
+  selectContact = (contact, i) => e => {
+    const checked = e.target.checked
+    const contacts = [...this.state.contacts]
+    contacts[i].checked = checked
+    this.setState({ contacts })
+  }
+
+  getRow = current => (contact, i) => (
+    <tr id={`contact_${i}`} key={contact._id} className={current === i || contact.checked ? 'row highlight' : 'row'}>
+      <td align="center" className="action-checkbox">
+        <label>
+          <input checked={contact.checked} type="checkbox" onChange={this.selectContact(contact, i)} />
+          <span />
+        </label>
+      </td>
       <td>{contact.departement}</td>
       <td>{contact.ville}</td>
-      <td className="openContact" onClick={() => this.onClickContact(contact._id)}>
+      <td className="openContact" onClick={() => this.onClickContact(contact._id, i)}>
         {contact.nom}
       </td>
       <td>{contact.responsable}</td>
@@ -108,45 +133,62 @@ class Index extends React.Component {
         <a href={`mailto:${contact.mail}?SUBJECT=Jazz`}>{contact.mail}</a>
       </td>
       <td>{contact.envoi_mail}</td>
-      <td>
-        <input type="checkbox" value={contact.mail} name="mass_mail" style={{ padding: 0 }} />
-      </td>
-      <td>{contact.mois_contact}</td>
+      <td>{months[+contact.mois_contact]}</td>
       <td>{contact.vu_le}</td>
     </tr>
   )
 
   render() {
     const {
+      props: { current },
       state: { contacts },
       getRow,
+      selectAll,
     } = this
 
     return (
       <div style={{ paddingTop: 0 }}>
-        <table padding="dense" className="list">
+        <Table>
           <thead>
             <tr>
+              <th>
+                <label>
+                  <input type="checkbox" onChange={selectAll} />
+                  <span>Sél. tous</span>
+                </label>
+              </th>
               <th>Département</th>
               <th>Ville</th>
               <th>Nom</th>
               <th>Responsable</th>
               <th>Mail</th>
               <th>Mail Envoyé le</th>
-              <th>Mail de masse</th>
               <th>Contact</th>
               <th>Vu le</th>
             </tr>
           </thead>
-          <tbody>{contacts.map(getRow)}</tbody>
-        </table>
+          <tbody>{contacts.map(getRow(current))}</tbody>
+        </Table>
       </div>
     )
   }
 }
 
-Index.propTypes = {
-  contacts: PropTypes.Array,
-}
+const mapStateToProps = state => ({
+  contacts: state.contacts,
+  loading: state.loadingContacts,
+  current: state.currentId,
+  lazyLoad: state.lazyLoad,
+  query: state.query,
+  count: state.count,
+})
 
-export default Index
+const mapDispatchToProps = dispatch => ({
+  loadContacts: params => dispatch(loadContacts(params)),
+  setCurrent: pos => dispatch(setCurrent(pos)),
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Index)
