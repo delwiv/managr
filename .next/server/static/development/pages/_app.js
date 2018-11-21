@@ -1167,40 +1167,19 @@ function (_Component) {
           lineNumber: 68
         },
         __self: this
-      }, "".concat(count, "/").concat(total)), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", {
-        __source: {
-          fileName: _jsxFileName,
-          lineNumber: 69
-        },
-        __self: this
-      }, "Charger tous", react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
-        onChange: toggleLazyLoad,
-        type: "checkbox",
-        checked: !lazyLoad,
-        __source: {
-          fileName: _jsxFileName,
-          lineNumber: 71
-        },
-        __self: this
-      }), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-        __source: {
-          fileName: _jsxFileName,
-          lineNumber: 72
-        },
-        __self: this
-      })))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+      }, "".concat(total, " contacts")))), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         key: "progress",
         className: "progress",
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 76
+          lineNumber: 71
         },
         __self: this
       }, loadingContacts && react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
         className: "indeterminate",
         __source: {
           fileName: _jsxFileName,
-          lineNumber: 77
+          lineNumber: 72
         },
         __self: this
       }))))];

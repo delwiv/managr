@@ -65,12 +65,7 @@ class Navbar extends Component {
                 Mois
                 <i className="material-icons ">arrow_drop_down</i>
               </a>
-              <strong>{`${count}/${total}`}</strong>
-              <label>
-                Charger tous
-                <input onChange={toggleLazyLoad} type="checkbox" checked={!lazyLoad} />
-                <span />
-              </label>
+              <strong>{`${total} contacts`}</strong>
             </div>
           </div>
           <div key="progress" className="progress">

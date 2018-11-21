@@ -19,12 +19,26 @@
       "name": null,
       "file": "static/chunks/styles.js",
       "publicPath": "static/chunks/styles.js"
+    },
+    {
+      "id": 7,
+      "name": null,
+      "file": "static/chunks/styles.js",
+      "publicPath": "static/chunks/styles.js"
     }
   ],
   "./list.css": [
     {
       "id": "./pages/list.css",
       "name": "./pages/list.css",
+      "file": "static/chunks/styles.js",
+      "publicPath": "static/chunks/styles.js"
+    }
+  ],
+  "./contact.css": [
+    {
+      "id": "./pages/contact.css",
+      "name": "./pages/contact.css",
       "file": "static/chunks/styles.js",
       "publicPath": "static/chunks/styles.js"
     }
