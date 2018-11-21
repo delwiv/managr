@@ -7,7 +7,7 @@
     "configure": "babel-node --presets @babel/env src/configure.js",
     "dev": "yarn configure && next",
     "build": "next build",
-    "start": "yarn configure && next start"
+    "start": "yarn configure && next start -p 3091"
   },
   "dependencies": {
     "@babel/core": "^7.1.5",
