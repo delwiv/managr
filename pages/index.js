@@ -10,6 +10,7 @@ import './list.css'
 import { connect } from 'react-redux'
 import { Table, Input } from 'react-materialize'
 import debounce from 'lodash.debounce'
+import Navbar from '../src/components/navbar'
 
 import { loadContacts, setCurrent } from '../lib/contacts'
 import { months } from '../src/config'
@@ -32,7 +33,7 @@ class Index extends React.Component {
 
   constructor(props) {
     super(props)
-    this.state = { contacts: props.contacts }
+    this.state = { contacts: props.contacts, checkedContacts: [] }
     this.loadContacts = params => this.props.loadContacts(params)
   }
 
@@ -44,7 +45,6 @@ class Index extends React.Component {
 
   componentDidMount() {
     if (isClient) {
-      window.addEventListener('scroll', this.onScroll, false)
       try {
         window.M.AutoInit()
       } catch (err) {}
@@ -59,27 +59,21 @@ class Index extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    if (isClient) {
-      window.removeEventListener('scroll', this.onScroll, false)
-    }
-  }
-
-  onScroll = () => {
-    if (!this.props.lazyLoad) return
-    if (this.lastCall && Date.now() < this.lastCall + 50) return
-    this.lastCall = Date.now()
-    if (
-      !this.props.loading &&
-      window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 &&
-      this.props.contacts.length
-    ) {
-      this.loadMore()
-    }
-  }
+  // onScroll = () => {
+  //   if (!this.props.lazyLoad) return
+  //   if (this.lastCall && Date.now() < this.lastCall + 50) return
+  //   this.lastCall = Date.now()
+  //   if (
+  //     !this.props.loading &&
+  //     window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 &&
+  //     this.props.contacts.length
+  //   ) {
+  //     this.loadMore()
+  //   }
+  // }
 
   sendEmails = async () => {
-    const emails = Array.from(document.querySelectorAll('input[name="mass_mail"]:checked')).map(i => i.value.trim())
+    const emails = this.state.checkedContacts.map(i => i.value.trim())
     console.log({ emails })
     const result = await fetch('http://localhost:3003/mails', {
       method: 'post',
@@ -89,14 +83,14 @@ class Index extends React.Component {
     console.log({ result })
   }
 
-  loadMore = debounce(() => {
-    const skip = this.props.contacts.length
-    if (skip === this.props.count) {
-      return
-    }
-    const q = this.props.query
-    this.loadContacts({ skip, q })
-  }, 100)
+  // loadMore = debounce(() => {
+  //   const skip = this.props.contacts.length
+  //   if (skip === this.props.count) {
+  //     return
+  //   }
+  //   const q = this.props.query
+  //   this.loadContacts({ skip, q })
+  // }, 100)
 
   onClickContact = (contactId, i) => {
     this.props.setCurrent(i)
@@ -105,14 +99,28 @@ class Index extends React.Component {
 
   selectAll = e => {
     const checked = e.target.checked
-    this.setState({ contacts: this.state.contacts.map(c => ({ ...c, checked })) })
+    const checkedContacts = []
+    this.setState({
+      contacts: this.state.contacts.map(c => {
+        if (checked) checkedContacts.push({ _id: c._id, email: c.mail })
+        return { ...c, checked }
+      }),
+      checkedContacts,
+    })
   }
 
   selectContact = (contact, i) => e => {
     const checked = e.target.checked
+
     const contacts = [...this.state.contacts]
-    contacts[i].checked = checked
-    this.setState({ contacts })
+    const current = contacts[i]
+    current.checked = checked
+
+    let checkedContacts = [...this.state.checkedContacts]
+    if (checked) checkedContacts.push({ _id: current._id, email: current.mail })
+    else checkedContacts = checkedContacts.filter(c => c._id !== current._id)
+    console.log({ checkedContacts })
+    this.setState({ contacts, checkedContacts })
   }
 
   getRow = current => (contact, i) => (
@@ -141,13 +149,15 @@ class Index extends React.Component {
   render() {
     const {
       props: { current },
-      state: { contacts },
+      state: { contacts, checkedContacts },
       getRow,
       selectAll,
+      sendEmails,
     } = this
 
-    return (
-      <div style={{ paddingTop: 0 }}>
+    return [
+      <Navbar key="navbar" selected={checkedContacts} sendEmails={sendEmails} />,
+      <div key="list" style={{ paddingTop: 0 }}>
         <Table>
           <thead>
             <tr>
@@ -169,8 +179,8 @@ class Index extends React.Component {
           </thead>
           <tbody>{contacts.map(getRow(current))}</tbody>
         </Table>
-      </div>
-    )
+      </div>,
+    ]
   }
 }
 

@@ -15,7 +15,9 @@ class Navbar extends Component {
     setQuery: T.func.isRequired,
     setLazyLoad: T.func.isRequired,
     lazyLoad: T.bool,
+    sendMail: T.func.isRequired,
     loadingContacts: T.bool,
+    selected: T.array,
     query: T.string,
   }
 
@@ -30,20 +32,14 @@ class Navbar extends Component {
     this.props.search({ q: value })
   }, 400)
 
-  toggleLazyLoad = e => {
-    const lazyLoad = !e.target.checked
-    this.props.setLazyLoad(lazyLoad)
-    if (!lazyLoad) this.search()
-  }
-
   render() {
     const {
-      props: { query, count, total, lazyLoad, loadingContacts },
-      toggleLazyLoad,
+      props: { query, total, loadingContacts, selected, sendMails },
     } = this
+    console.log({ selected })
     return [
       <div key="nav" className="navbar-fixed">
-        <ul id="dropdown1" className="dropdown-content">
+        <ul id="dropdownMonths" className="dropdown-content">
           {months.map((month, i) => (
             <li key={month}>
               <a href="#!" onClick={() => this.onChange({ target: { value: `month:${i}` } })}>
@@ -51,6 +47,13 @@ class Navbar extends Component {
               </a>
             </li>
           ))}
+        </ul>
+        <ul id="dropdownActions" className="dropdown-content">
+          <li>
+            <a href="#!" onClick={sendMails}>
+              Envoi mail multiple
+            </a>
+          </li>
         </ul>
         <nav>
           <div className="nav-wrapper">
@@ -61,11 +64,21 @@ class Navbar extends Component {
               </label>
             </div>
             <div style={{ paddingRight: '20px', paddingLeft: '20px' }}>
-              <a className="dropdown-trigger" href="#!" data-target="dropdown1">
+              <a className="dropdown-trigger" href="#!" data-target="dropdownMonths">
                 Mois
                 <i className="material-icons ">arrow_drop_down</i>
               </a>
-              <strong>{`${total} contacts`}</strong>
+              <a className="dropdown-trigger" href="#!" data-target="dropdownActions">
+                {selected.length ? (
+                  <span>
+                    {`${selected.length} Sélectionnés`}
+                    <i className="material-icons ">arrow_drop_down</i>
+                  </span>
+                ) : (
+                  undefined
+                )}
+              </a>
+              <strong> {`${total} contacts`}</strong>
             </div>
           </div>
           <div key="progress" className="progress">

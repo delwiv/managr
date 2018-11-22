@@ -55,14 +55,21 @@ class Contact extends Component {
     })
   }
 
-  getInput = contact => (field, custom) => {
+  getInput = contact => (field, custom, options = {}) => {
     const label = custom || `${field[0].toUpperCase()}${field.slice(1)}`
     return (
       <div className="input-group">
         <label htmlFor={field} style={labelStyle}>
           {label}
         </label>
-        <input type="text" name={field} id={field} value={contact[field]} onChange={this.handleChange(field)} />
+        <input
+          type="text"
+          name={field}
+          id={field}
+          value={contact[field]}
+          onChange={this.handleChange(field)}
+          {...options}
+        />
       </div>
     )
   }
@@ -81,6 +88,7 @@ class Contact extends Component {
       updateContact,
       deleteContact,
       handleChange,
+      openUrl,
     } = this
 
     const getInput = this.getInput(contact)
@@ -93,17 +101,9 @@ class Contact extends Component {
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'column',
+          paddingTop: '10px',
         }}
       >
-        <h1>{contact.nom}</h1>
-        <p>
-          <strong>{contact.adresse}</strong>
-        </p>
-        <p>
-          <strong>
-            {contact.cp} {contact.ville}
-          </strong>
-        </p>
         <form
           style={{
             display: 'flex',
@@ -141,8 +141,20 @@ class Contact extends Component {
               <fieldset>
                 <legend>Infos</legend>
                 {getInput('cible')}
+                <div style={{ display: 'flex' }}>
+                  <div style={{ flex: 9 }}>{getInput('site', null /*{ defaultValue: 'http://'}*/)}</div>
+                  <a
+                    className={`btn right ${!contact.site && 'disabled'}`}
+                    href={contact.site}
+                    target="_blank"
+                    style={{ flex: 1 }}
+                    rel="noopener noreferrer"
+                  >
+                    Ouvrir
+                  </a>
+                </div>
                 {getInput('vu')}
-                {getInput('date')}
+                {getInput('envoi_mail', 'Mail envoyé')}
                 {getInput('mois')}
               </fieldset>
             </div>
@@ -188,22 +200,34 @@ class Contact extends Component {
               <textarea className="text" rows={8} value={contact.notes} onChange={handleChange('notes')} />
             </fieldset>
           </div>
-          <div className="controls">
-            <input
-              type="button"
-              className="waves-effect waves-light btn red"
-              id="delete"
-              value="Supprimer"
-              onClick={deleteContact}
-            />
-            <input
-              type="button"
-              className="waves-effect waves-light btn blue"
-              disabled={!hasChanged}
-              onClick={updateContact}
-              id="save"
-              value="Sauver"
-            />
+          <div className="controls-wrap">
+            <div className="controls">
+              <div id="modal1" className="modal">
+                <div className="modal-content">
+                  <h4>Supprimer ?</h4>
+                </div>
+                <div className="modal-footer">
+                  <a href="#!" className="btn modal-close waves-effect blue">
+                    Annuler
+                  </a>
+                  <a onClick={deleteContact} href="#!" className="btn modal-close waves-effect red">
+                    Supprimer
+                  </a>
+                </div>
+              </div>
+              <a className="waves-effect waves-light btn red modal-trigger" href="#modal1">
+                Supprimer
+              </a>
+
+              <input
+                type="button"
+                className="waves-effect waves-light btn blue"
+                disabled={!hasChanged}
+                onClick={updateContact}
+                id="save"
+                value="Sauver"
+              />
+            </div>
           </div>
         </form>
       </div>
