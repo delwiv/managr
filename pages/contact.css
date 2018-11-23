@@ -36,3 +36,9 @@ input {
 input[type='text'] {
   border: none !important;
 }
+
+.input-field,
+.row {
+  margin-top: 0.2rem !important;
+  margin-bottom: 0 !important;
+}

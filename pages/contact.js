@@ -3,9 +3,10 @@
 import React, { Component } from 'react'
 import T from 'prop-types'
 import { connect } from 'react-redux'
-import { equals } from 'ramda'
+import { equals, map, path } from 'ramda'
 
 import { viewContact, updateContact, deleteContact } from '../lib/contacts'
+import { months, depts } from '../src/config'
 import './contact.css'
 
 const labelStyle = {
@@ -38,6 +39,8 @@ class Contact extends Component {
     if (!equals(prevProps.contact, this.props.contact)) {
       this.setState({ contact: this.props.contact })
     }
+    window.M.updateTextFields()
+    // window.M.textareaAutoResize('#notes')
   }
 
   componentDidMount() {
@@ -56,20 +59,43 @@ class Contact extends Component {
   }
 
   getInput = contact => (field, custom, options = {}) => {
-    const label = custom || `${field[0].toUpperCase()}${field.slice(1)}`
+    console.log(options)
+    const label = options.icon ? '' : custom || `${field[0].toUpperCase()}${field.slice(1)}`
+    const width = options.width || 12
+    const Icon = () => <i className="material-icons prefix">{options.icon}</i>
+    const Right = () => (
+      <div className={`input-field col s${12 - width}`}>
+        <i className="material-icons prefix">{options.right.icon}</i>
+        <input value={options.right.label} type="text" />
+      </div>
+    )
+    console.log({ label, width })
     return (
-      <div className="input-group">
-        <label htmlFor={field} style={labelStyle}>
-          {label}
-        </label>
-        <input
-          type="text"
-          name={field}
-          id={field}
-          value={contact[field]}
-          onChange={this.handleChange(field)}
-          {...options}
-        />
+      <div className="row">
+        <div className={`input-field col s${width}`}>
+          {options.icon && <Icon />}
+          <input
+            id={field}
+            name={field}
+            value={contact[field]}
+            onChange={this.handleChange(field)}
+            type="text"
+            className="validate"
+          />
+          <label htmlFor={field}>{label}</label>
+          {/* <div className="">
+             <span style={{}}>{label}</span>
+             <input
+               type="text"
+               name={field}
+               id={field}
+               value={contact[field]}
+               onChange={this.handleChange(field)}
+               {...options}
+             />
+           </div>*/}
+        </div>
+        {options.right && <Right />}
       </div>
     )
   }
@@ -82,13 +108,18 @@ class Contact extends Component {
     this.props.deleteContact(this.state.contact._id)
   }
 
+  handelDept = e => {
+    console.log(e.target)
+  }
+
   render() {
     const {
       state: { contact },
       updateContact,
       deleteContact,
       handleChange,
-      openUrl,
+      handleMonth,
+      handleDept,
     } = this
 
     const getInput = this.getInput(contact)
@@ -132,17 +163,50 @@ class Contact extends Component {
             >
               <fieldset>
                 <legend>Adresse</legend>
-                {getInput('nom')}
-                {getInput('adresse')}
-                {getInput('cp')}
-                {getInput('departement')}
-                {getInput('ville')}
+                <div className="row">
+                  <div className="col s12">{getInput('nom', null, { icon: 'home' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s12">{getInput('adresse', null, { icon: 'location_on' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s4">{getInput('cp', null, { icon: 'local_post_office' })}</div>
+                  <div className="col s8">{getInput('ville', null, { icon: 'business' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s12">
+                    {getInput('departement', null, {
+                      icon: 'flag',
+                      width: 4,
+                      right: {
+                        icon: 'informations',
+                        label: path(['name'], depts.find(d => d.code === contact.departement)) || '',
+                      },
+                    })}
+                  </div>
+                  {/*<label htmlFor="dept">Département</label>
+                    <ul id="dropdownDept" className="dropdown-content">
+                      {map(({ code, name }) => {
+                        return (
+                          <li key={code} onClick={handleDept}>
+                            <a href="#!">{`${code} - ${name}`}</a>
+                          </li>
+                        )
+                      }, depts)}
+                    </ul>
+                    <a id="dept" className="dropdown-trigger black-text" href="#!" data-target="dropdownDept">
+                      {`${path(['code'], depts.find(d => d.code === contact.departement))} - ${path(
+                        ['name'],
+                        depts.find(d => d.code === contact.departement)
+                      )}`}
+                      <i className="material-icons ">arrow_drop_down</i>
+                    </a>*/}
+                </div>
               </fieldset>
               <fieldset>
                 <legend>Infos</legend>
-                {getInput('cible')}
-                <div style={{ display: 'flex' }}>
-                  <div style={{ flex: 9 }}>{getInput('site', null /*{ defaultValue: 'http://'}*/)}</div>
+                <div className="row">
+                  <div className="col s9">{getInput('site', null, { icon: 'http' })}</div>
                   <a
                     className={`btn right ${!contact.site && 'disabled'}`}
                     href={contact.site}
@@ -153,9 +217,36 @@ class Contact extends Component {
                     Ouvrir
                   </a>
                 </div>
-                {getInput('vu')}
-                {getInput('envoi_mail', 'Mail envoyé')}
-                {getInput('mois')}
+                <div className="row">
+                  <div className="col s6">{getInput('cible', null, { icon: 'gps_fixed' })}</div>
+                  <div className="col s6">{getInput('vu_le', 'Vu le', { icon: 'remove_red_eye' })}</div>
+                </div>
+
+                <div className="row">
+                  <div className="input-group col s12">
+                    <i className="material-icons prefix" style={{ width: '45px', alignSelf: 'flex-end' }}>
+                      subdirectory_arrow_right
+                    </i>
+                    <ul id="dropdownMonths" className="dropdown-content">
+                      {months.map((month, i) => (
+                        <li key={month}>
+                          <a id={month} href="#!" onClick={handleMonth}>
+                            {month}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <a
+                      id="mois_contact"
+                      className="dropdown-trigger black-text input-field "
+                      href="#!"
+                      data-target="dropdownMonths"
+                    >
+                      {months[contact.mois_contact]}
+                      <i className="material-icons ">arrow_drop_down</i>
+                    </a>
+                  </div>
+                </div>
               </fieldset>
             </div>
             <div
@@ -167,21 +258,34 @@ class Contact extends Component {
             >
               <fieldset>
                 <legend>Responsable</legend>
-                {getInput('responsable', 'Nom')}
-                {getInput('tel_pro', 'Tel')}
-                {getInput('mail', 'Mail')}
+                <div className="row">
+                  <div className="col s7">{getInput('responsable', 'Nom', { icon: 'account_circle' })}</div>
+                  <div className="col s5">{getInput('tel_pro', 'Tel', { icon: 'phone' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s7">{getInput('mail', 'Mail', { icon: 'alternate_email' })}</div>
+                  <div className="col s5">{getInput('envoi_mail', 'Mail envoyé', { icon: 'date_range' })}</div>
+                </div>
               </fieldset>
               <fieldset>
                 <legend>Responsable 2</legend>
-                {getInput('responsable2', 'Nom')}
-                {getInput('tel_perso', 'Tel')}
-                {getInput('mail2', 'Mail')}
+                <div className="row">
+                  <div className="col s7">{getInput('responsable2', 'Nom', { icon: 'account_circle' })}</div>
+                  <div className="col s5">{getInput('tel_perso', 'Tel', { icon: 'phone' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s12">{getInput('mail2', 'Mail', { icon: 'alternate_email' })}</div>
+                </div>
               </fieldset>
               <fieldset>
                 <legend>Responsable 3</legend>
-                {getInput('responsable3', 'Nom')}
-                {getInput('tel3', 'Tel')}
-                {getInput('mail3', 'Mail')}
+                <div className="row">
+                  <div className="col s7">{getInput('responsable3', 'Nom', { icon: 'account_circle' })}</div>
+                  <div className="col s5">{getInput('tel3', 'Tel', { icon: 'phone' })}</div>
+                </div>
+                <div className="row">
+                  <div className="col s12">{getInput('mail3', 'Mail', { icon: 'alternate_email' })}</div>
+                </div>
               </fieldset>
             </div>
           </div>
@@ -197,7 +301,13 @@ class Contact extends Component {
           >
             <fieldset>
               <legend>Notes</legend>
-              <textarea className="text" rows={8} value={contact.notes} onChange={handleChange('notes')} />
+              <textarea
+                className="materialize-textarea"
+                rows={8}
+                id="notes"
+                value={contact.notes}
+                onChange={handleChange('notes')}
+              />
             </fieldset>
           </div>
           <div className="controls-wrap">
