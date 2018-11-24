@@ -119,7 +119,6 @@ class Index extends React.Component {
     let checkedContacts = [...this.state.checkedContacts]
     if (checked) checkedContacts.push({ _id: current._id, email: current.mail })
     else checkedContacts = checkedContacts.filter(c => c._id !== current._id)
-    console.log({ checkedContacts })
     this.setState({ contacts, checkedContacts })
   }
 

@@ -59,7 +59,6 @@ class Contact extends Component {
   }
 
   getInput = contact => (field, custom, options = {}) => {
-    console.log(options)
     const label = options.icon ? '' : custom || `${field[0].toUpperCase()}${field.slice(1)}`
     const width = options.width || 12
     const Icon = () => <i className="material-icons prefix">{options.icon}</i>
@@ -69,7 +68,6 @@ class Contact extends Component {
         <input value={options.right.label} type="text" />
       </div>
     )
-    console.log({ label, width })
     return (
       <div className="row">
         <div className={`input-field col s${width}`}>
@@ -109,7 +107,7 @@ class Contact extends Component {
   }
 
   handelDept = e => {
-    console.log(e.target)
+    console.log(e.target.value)
   }
 
   render() {
