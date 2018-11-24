@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import T from 'prop-types'
 import { connect } from 'react-redux'
 import debounce from 'lodash.debounce'
+import Link from 'next/link'
 
 import { loadContacts, setQuery, setLazyLoad } from '../../lib/contacts'
 import { months } from '../config'
@@ -50,9 +51,18 @@ class Navbar extends Component {
         </ul>
         <ul id="dropdownActions" className="dropdown-content">
           <li>
-            <a href="#!" onClick={sendMails}>
-              Envoi mail multiple
+            <a onClick={sendMails}>
+              <i className="material-icons prefix">alternate_email</i>
+              Envoi emails
             </a>
+          </li>
+          <li>
+            <Link href="/contact">
+              <a>
+                <i className="material-icons prefix">person_add</i>
+                Nouvelle fiche
+              </a>
+            </Link>
           </li>
         </ul>
         <nav>
@@ -68,17 +78,11 @@ class Navbar extends Component {
                 Mois
                 <i className="material-icons ">arrow_drop_down</i>
               </a>
-              <a className="dropdown-trigger" href="#!" data-target="dropdownActions">
-                {selected.length ? (
-                  <span>
-                    {`${selected.length} Sélectionnés`}
-                    <i className="material-icons ">arrow_drop_down</i>
-                  </span>
-                ) : (
-                  undefined
-                )}
-              </a>
               <strong> {`${total} contacts`}</strong>
+              <a className="dropdown-trigger right" href="#!" data-target="dropdownActions">
+                <i className="material-icons ">menu</i>
+                {selected.length ? <span>{`${selected.length} Sélectionnés`}</span> : undefined}
+              </a>
             </div>
           </div>
           <div key="progress" className="progress">

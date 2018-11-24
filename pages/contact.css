@@ -2,7 +2,13 @@
   margin-right: 0 !important;
   margin-left: 0 !important;
 }
-
+.httpIcon i {
+  font-size: 24px !important;
+}
+.progress {
+  margin: 0 !important;
+  background-color: #505050 !important;
+}
 fieldset {
   display: flex;
   flex: 1;

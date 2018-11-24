@@ -37,9 +37,14 @@ class Index extends React.Component {
     this.loadContacts = params => this.props.loadContacts(params)
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     if (this.props.contacts.length !== this.state.contacts.length) {
       this.setState({ contacts: this.props.contacts })
+    }
+    if (this.props.current && !prevProps.current) {
+      const element = document.getElementById(`contact_${this.props.current}`)
+
+      element.scrollIntoView({ block: 'center' })
     }
   }
 
@@ -51,11 +56,6 @@ class Index extends React.Component {
     }
     if (!this.props.contacts.length) {
       return this.loadContacts()
-    }
-    if (this.props.current) {
-      const element = document.getElementById(`contact_${this.props.current}`)
-
-      element.scrollIntoView({ block: 'center' })
     }
   }
 

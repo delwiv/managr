@@ -22,3 +22,11 @@
 [type='checkbox']:after {
   top: 10px !important;
 }
+
+#dropdownMonths {
+  width: 140px !important;
+}
+
+#dropdownActions {
+  width: 250px !important;
+}

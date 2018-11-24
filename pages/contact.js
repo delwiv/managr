@@ -8,12 +8,8 @@ import { equals, map, path } from 'ramda'
 import { viewContact, updateContact, deleteContact } from '../lib/contacts'
 import { months, depts } from '../src/config'
 import './contact.css'
-
-const labelStyle = {
-  display: 'flex',
-  justifyContent: 'stretch',
-  alignItems: 'stretch',
-}
+import Link from 'next/link'
+import Router from 'next/router'
 
 class Contact extends Component {
   static propTypes = {
@@ -22,17 +18,21 @@ class Contact extends Component {
     viewContact: T.func.isRequired,
     updateContact: T.func.isRequired,
     deleteContact: T.func.isRequired,
-    contactId: T.string.isRequired,
+    contactId: T.string,
   }
 
   static getInitialProps = async params => {
-    return { contactId: params.query.contactId }
+    const contactId = path(['query', 'contactId'], params)
+    return { contactId, creation: !contactId }
   }
 
   constructor(props) {
     super(props)
-    this.state = { contact: props.contact }
-    this.props.viewContact(this.props.contactId)
+    this.state = { contact: props.contact || {} }
+    if (this.props.contactId) {
+      this.props.viewContact(this.props.contactId)
+    }
+    this.textareaRef = React.createRef()
   }
 
   componentDidUpdate = prevProps => {
@@ -40,7 +40,7 @@ class Contact extends Component {
       this.setState({ contact: this.props.contact })
     }
     window.M.updateTextFields()
-    // window.M.textareaAutoResize('#notes')
+    window.M.textareaAutoResize(this.textareaRef.current)
   }
 
   componentDidMount() {
@@ -57,10 +57,25 @@ class Contact extends Component {
       },
     })
   }
+  updateContact = () => {
+    this.props.updateContact(this.state.contact)
+  }
+
+  deleteContact = () => {
+    this.props.creation ? Router.push('/') : this.props.deleteContact(this.state.contact._id)
+  }
+
+  handleMonth = e => {
+    const month = e.target.attributes.getNamedItem('id').nodeValue
+    this.setState({
+      contact: { ...this.state.contact, mois_contact: month },
+    })
+  }
 
   getInput = contact => (field, custom, options = {}) => {
-    const label = options.icon ? '' : custom || `${field[0].toUpperCase()}${field.slice(1)}`
+    const label = custom || `${field[0].toUpperCase()}${field.slice(1)}`
     const width = options.width || 12
+    const value = options.value || contact[field]
     const Icon = () => <i className="material-icons prefix">{options.icon}</i>
     const Right = () => (
       <div className={`input-field col s${12 - width}`}>
@@ -69,70 +84,76 @@ class Contact extends Component {
       </div>
     )
     return (
-      <div className="row">
+      <div className="row" title={label}>
         <div className={`input-field col s${width}`}>
           {options.icon && <Icon />}
-          <input
-            id={field}
-            name={field}
-            value={contact[field]}
-            onChange={this.handleChange(field)}
-            type="text"
-            className="validate"
-          />
-          <label htmlFor={field}>{label}</label>
-          {/* <div className="">
-             <span style={{}}>{label}</span>
-             <input
-               type="text"
-               name={field}
-               id={field}
-               value={contact[field]}
-               onChange={this.handleChange(field)}
-               {...options}
-             />
-           </div>*/}
+          {options.Input ? (
+            <options.Input />
+          ) : (
+            <input
+              id={field}
+              name={field}
+              value={value}
+              onChange={this.handleChange(field)}
+              type="text"
+              className="validate"
+              {...options}
+            />
+          )}
+          {!options.icon && <label htmlFor={field}>{label}</label>}
         </div>
         {options.right && <Right />}
       </div>
     )
   }
 
-  updateContact = () => {
-    this.props.updateContact(this.state.contact)
-  }
-
-  deleteContact = () => {
-    this.props.deleteContact(this.state.contact._id)
-  }
-
-  handelDept = e => {
-    console.log(e.target.value)
-  }
-
   render() {
     const {
       state: { contact },
+      props: { loadingContact, creation },
       updateContact,
       deleteContact,
       handleChange,
       handleMonth,
-      handleDept,
     } = this
 
     const getInput = this.getInput(contact)
     const hasChanged = !equals(contact, this.props.contact)
 
-    return (
+    return [
+      <div key="progress" className="progress">
+        {loadingContact && <div className="indeterminate" />}
+      </div>,
       <div
+        key="main"
         style={{
           display: 'flex',
-          alignItems: 'center',
+          position: 'relative',
           justifyContent: 'center',
           flexDirection: 'column',
           paddingTop: '10px',
         }}
       >
+        <div
+          title="Retour à la liste"
+          style={{
+            position: 'absolute',
+            top: '15px',
+            left: '15px',
+            cursor: 'pointer',
+          }}
+        >
+          <Link href="/">
+            <i
+              style={{
+                fontSize: '40px',
+              }}
+              className="material-icons"
+            >
+              arrow_back_ios
+            </i>
+          </Link>
+        </div>
         <form
           style={{
             display: 'flex',
@@ -168,18 +189,15 @@ class Contact extends Component {
                   <div className="col s12">{getInput('adresse', null, { icon: 'location_on' })}</div>
                 </div>
                 <div className="row">
-                  <div className="col s4">{getInput('cp', null, { icon: 'local_post_office' })}</div>
+                  <div className="col s4">{getInput('cp', 'Code Postal', { icon: 'local_post_office' })}</div>
                   <div className="col s8">{getInput('ville', null, { icon: 'business' })}</div>
                 </div>
                 <div className="row">
-                  <div className="col s12">
-                    {getInput('departement', null, {
-                      icon: 'flag',
-                      width: 4,
-                      right: {
-                        icon: 'informations',
-                        label: path(['name'], depts.find(d => d.code === contact.departement)) || '',
-                      },
+                  <div className="col s4">{getInput('departement', 'N° département', { icon: 'flag' })}</div>
+                  <div className="col s8">
+                    {getInput('departement_label', 'Département', {
+                      icon: 'informations',
+                      value: path(['name'], depts.find(d => d.code === contact.departement)) || '',
                     })}
                   </div>
                   {/*<label htmlFor="dept">Département</label>
@@ -204,7 +222,9 @@ class Contact extends Component {
               <fieldset>
                 <legend>Infos</legend>
                 <div className="row">
-                  <div className="col s9">{getInput('site', null, { icon: 'http' })}</div>
+                  <div className="col s9">
+                    {getInput('site', 'Site web', { icon: 'desktop_windows', defaultValue: 'http://' })}
+                  </div>
                   <a
                     className={`btn right ${!contact.site && 'disabled'}`}
                     href={contact.site}
@@ -221,28 +241,34 @@ class Contact extends Component {
                 </div>
 
                 <div className="row">
-                  <div className="input-group col s12">
-                    <i className="material-icons prefix" style={{ width: '45px', alignSelf: 'flex-end' }}>
-                      subdirectory_arrow_right
-                    </i>
-                    <ul id="dropdownMonths" className="dropdown-content">
-                      {months.map((month, i) => (
-                        <li key={month}>
-                          <a id={month} href="#!" onClick={handleMonth}>
-                            {month}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                    <a
-                      id="mois_contact"
-                      className="dropdown-trigger black-text input-field "
-                      href="#!"
-                      data-target="dropdownMonths"
-                    >
-                      {months[contact.mois_contact]}
-                      <i className="material-icons ">arrow_drop_down</i>
-                    </a>
+                  <div className="col s12">
+                    <div className="row">
+                      <div className={`input-field col s12`}>
+                        <i className="material-icons prefix">subdirectory_arrow_right</i>
+                        <a
+                          id="mois_contact"
+                          className="dropdown-trigger black-text validate"
+                          href="#!"
+                          style={{ marginLeft: '45px' }}
+                          data-target="dropdownMonths"
+                        >
+                          {months[contact.mois_contact]}
+                          <i className="material-icons ">arrow_drop_down</i>
+                        </a>
+
+                        <div className="input-field">
+                          <ul id="dropdownMonths" className="dropdown-content">
+                            {months.map((month, i) => (
+                              <li key={month}>
+                                <a id={i} href="#!" onClick={handleMonth}>
+                                  {month}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </fieldset>
@@ -303,6 +329,7 @@ class Contact extends Component {
                 className="materialize-textarea"
                 rows={8}
                 id="notes"
+                ref={this.textareaRef}
                 value={contact.notes}
                 onChange={handleChange('notes')}
               />
@@ -316,15 +343,15 @@ class Contact extends Component {
                 </div>
                 <div className="modal-footer">
                   <a href="#!" className="btn modal-close waves-effect blue">
-                    Annuler
+                    Non
                   </a>
                   <a onClick={deleteContact} href="#!" className="btn modal-close waves-effect red">
-                    Supprimer
+                    Oui
                   </a>
                 </div>
               </div>
               <a className="waves-effect waves-light btn red modal-trigger" href="#modal1">
-                Supprimer
+                {creation ? 'Annuler' : 'Supprimer'}
               </a>
 
               <input
@@ -338,8 +365,8 @@ class Contact extends Component {
             </div>
           </div>
         </form>
-      </div>
-    )
+      </div>,
+    ]
   }
 }
 
