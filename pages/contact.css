@@ -1,3 +1,8 @@
+.row {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
 fieldset {
   display: flex;
   flex: 1;
@@ -41,6 +46,5 @@ input[type='text'] {
 .row {
   margin-top: 0.2rem !important;
   margin-bottom: 0 !important;
-  margin-right: 0 !important;
-  margin-left: 0 !important;
 }
+
