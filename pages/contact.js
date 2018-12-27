@@ -72,7 +72,7 @@ class Contact extends Component {
     })
   }
 
-  getInput = contact => (field, custom, options = {}) => {
+  getInput = (contact = {}) => (field, custom, options = {}) => {
     const label = custom || `${field[0].toUpperCase()}${field.slice(1)}`
     const width = options.width || 12
     const value = options.value || contact[field]
