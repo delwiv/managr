@@ -222,9 +222,7 @@ class Contact extends Component {
               <fieldset>
                 <legend>Infos</legend>
                 <div className="row">
-                  <div className="col s9">
-                    {getInput('site', 'Site web', { icon: 'desktop_windows', defaultValue: '' })}
-                  </div>
+                  <div className="col s9">{getInput('site', 'Site web', { icon: 'desktop_windows' })}</div>
                   <a
                     className={`btn right ${!contact.site && 'disabled'}`}
                     href={contact.site}
