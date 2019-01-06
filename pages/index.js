@@ -68,7 +68,7 @@ class Index extends React.Component {
   onClickContact = (contactId, i) => {
     const previousUnfold = this.state.unfold
     const isUnfold = previousUnfold.some(c => c === contactId)
-    const unfold = isUnfold ? previousUnfold.filter(c => c !== contactId) : previousUnfold.concat(contactId)
+    const unfold = isUnfold ? [] : [contactId]
     this.setState({ unfold })
   }
 
