@@ -16,7 +16,7 @@ class Navbar extends Component {
     setQuery: T.func.isRequired,
     setLazyLoad: T.func.isRequired,
     lazyLoad: T.bool,
-    sendMail: T.func.isRequired,
+    sendMails: T.func.isRequired,
     loadingContacts: T.bool,
     selected: T.array,
     query: T.string,
@@ -37,7 +37,6 @@ class Navbar extends Component {
     const {
       props: { query, total, loadingContacts, selected, sendMails },
     } = this
-    console.log({ selected })
     return [
       <div key="nav" className="navbar-fixed">
         <ul id="dropdownMonths" className="dropdown-content">

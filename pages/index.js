@@ -1,19 +1,16 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 
 import React from 'react'
-import ReactDOM from 'react-dom'
 import T from 'prop-types'
-import Link from 'next/link'
 import fetch from 'isomorphic-unfetch'
-import Router from 'next/router'
 import './list.css'
 import { connect } from 'react-redux'
-import { Table, Input } from 'react-materialize'
-import debounce from 'lodash.debounce'
+import { Table } from 'react-materialize'
 import Navbar from '../src/components/navbar'
 
 import { loadContacts, setCurrent } from '../lib/contacts'
 import { months } from '../src/config'
+import Contact from './contact'
 
 const isClient = typeof window !== 'undefined'
 
@@ -29,22 +26,15 @@ class Index extends React.Component {
     setCurrent: T.func.isRequired,
   }
 
-  // state = { contacts: [] }
-
   constructor(props) {
     super(props)
-    this.state = { contacts: props.contacts, checkedContacts: [] }
+    this.state = { contacts: props.contacts, checkedContacts: [], unfold: [] }
     this.loadContacts = params => this.props.loadContacts(params)
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     if (this.props.contacts.length !== this.state.contacts.length) {
       this.setState({ contacts: this.props.contacts })
-    }
-    if (this.props.current && !prevProps.current) {
-      const element = document.getElementById(`contact_${this.props.current}`)
-
-      element.scrollIntoView({ block: 'center' })
     }
   }
 
@@ -57,20 +47,12 @@ class Index extends React.Component {
     if (!this.props.contacts.length) {
       return this.loadContacts()
     }
-  }
+    if (this.props.current) {
+      const element = document.getElementById(`contact_${this.props.current}`)
 
-  // onScroll = () => {
-  //   if (!this.props.lazyLoad) return
-  //   if (this.lastCall && Date.now() < this.lastCall + 50) return
-  //   this.lastCall = Date.now()
-  //   if (
-  //     !this.props.loading &&
-  //     window.innerHeight + window.scrollY >= document.body.offsetHeight - 5000 &&
-  //     this.props.contacts.length
-  //   ) {
-  //     this.loadMore()
-  //   }
-  // }
+      element.scrollIntoView({ block: 'center' })
+    }
+  }
 
   sendEmails = async () => {
     const emails = this.state.checkedContacts.map(i => i.value.trim())
@@ -83,18 +65,11 @@ class Index extends React.Component {
     console.log({ result })
   }
 
-  // loadMore = debounce(() => {
-  //   const skip = this.props.contacts.length
-  //   if (skip === this.props.count) {
-  //     return
-  //   }
-  //   const q = this.props.query
-  //   this.loadContacts({ skip, q })
-  // }, 100)
-
   onClickContact = (contactId, i) => {
-    this.props.setCurrent(i)
-    Router.push(`/contact?contactId=${contactId}`)
+    const previousUnfold = this.state.unfold
+    const isUnfold = previousUnfold.some(c => c === contactId)
+    const unfold = isUnfold ? previousUnfold.filter(c => c !== contactId) : previousUnfold.concat(contactId)
+    this.setState({ unfold })
   }
 
   selectAll = e => {
@@ -122,38 +97,51 @@ class Index extends React.Component {
     this.setState({ contacts, checkedContacts })
   }
 
-  getRow = current => (contact, i) => (
-    <tr id={`contact_${i}`} key={contact._id} className={current === i || contact.checked ? 'row highlight' : 'row'}>
-      <td align="center" className="action-checkbox">
-        <label>
-          <input checked={contact.checked} type="checkbox" onChange={this.selectContact(contact, i)} />
-          <span />
-        </label>
-      </td>
-      <td>{contact.departement}</td>
-      <td>{contact.ville}</td>
-      <td className="openContact" onClick={() => this.onClickContact(contact._id, i)}>
-        {contact.nom}
-      </td>
-      <td>{contact.responsable}</td>
-      <td>
-        <a href={`mailto:${contact.mail}?SUBJECT=Jazz`}>{contact.mail}</a>
-      </td>
-      <td>{contact.envoi_mail}</td>
-      <td>{months[+contact.mois_contact]}</td>
-      <td>{contact.vu_le}</td>
-    </tr>
-  )
+  getRow = (current, unfold) => (contact, i) => {
+    const displayFullContact = unfold.some(c => c === contact._id)
+    const result = [
+      <tr id={`contact_${i}`} key={contact._id} className={current === i || contact.checked ? 'row highlight' : 'row'}>
+        <td align="center" className="action-checkbox">
+          <label>
+            <input checked={contact.checked} type="checkbox" onChange={this.selectContact(contact, i)} />
+            <span />
+          </label>
+        </td>
+        <td>{contact.departement}</td>
+        <td>{contact.ville}</td>
+        <td className="openContact" onClick={() => this.onClickContact(contact._id, i)}>
+          {contact.nom}
+        </td>
+        <td>{contact.responsable}</td>
+        <td>
+          <a href={`mailto:${contact.mail}?SUBJECT=Jazz`}>{contact.mail}</a>
+        </td>
+        <td>{contact.envoi_mail}</td>
+        <td>{months[+contact.mois_contact]}</td>
+        <td>{contact.vu_le}</td>
+      </tr>,
+    ]
+    if (displayFullContact) {
+      result.push(
+        <tr key="embedContact">
+          <td colSpan={9}>
+            <Contact contactId={contact._id} />
+          </td>
+        </tr>
+      )
+    }
+    return result
+  }
 
   render() {
     const {
       props: { current },
-      state: { contacts, checkedContacts },
+      state: { contacts, checkedContacts, unfold },
       getRow,
       selectAll,
       sendEmails,
     } = this
-
+    const rows = contacts.map(getRow(current, unfold))
     return [
       <Navbar key="navbar" selected={checkedContacts} sendEmails={sendEmails} />,
       <div key="list" style={{ paddingTop: 0 }}>
@@ -176,7 +164,7 @@ class Index extends React.Component {
               <th>Vu le</th>
             </tr>
           </thead>
-          <tbody>{contacts.map(getRow(current))}</tbody>
+          <tbody>{rows}</tbody>
         </Table>
       </div>,
     ]

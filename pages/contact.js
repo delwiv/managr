@@ -3,13 +3,12 @@
 import React, { Component } from 'react'
 import T from 'prop-types'
 import { connect } from 'react-redux'
-import { equals, map, path } from 'ramda'
+import { equals, path } from 'ramda'
 
 import { viewContact, updateContact, deleteContact } from '../lib/contacts'
 import { months, depts } from '../src/config'
 import './contact.css'
 import Link from 'next/link'
-import Router from 'next/router'
 
 class Contact extends Component {
   static propTypes = {
@@ -21,17 +20,9 @@ class Contact extends Component {
     contactId: T.string,
   }
 
-  static getInitialProps = async params => {
-    const contactId = path(['query', 'contactId'], params)
-    return { contactId, creation: !contactId }
-  }
-
   constructor(props) {
     super(props)
-    this.state = { contact: props.contact || {} }
-    if (this.props.contactId) {
-      this.props.viewContact(this.props.contactId)
-    }
+    this.state = { contact: {} }
     this.textareaRef = React.createRef()
   }
 
@@ -39,11 +30,18 @@ class Contact extends Component {
     if (!equals(prevProps.contact, this.props.contact)) {
       this.setState({ contact: this.props.contact })
     }
+    if (!equals(prevProps.loading, this.props.loading)) {
+      this.setState({ loading: this.props.loading })
+    }
     window.M.updateTextFields()
     window.M.textareaAutoResize(this.textareaRef.current)
   }
 
   componentDidMount() {
+    this.setState({ contact: {} })
+    if (this.props.contactId) {
+      this.props.viewContact(this.props.contactId)
+    }
     try {
       window.M.AutoInit()
     } catch (err) {}
@@ -62,7 +60,10 @@ class Contact extends Component {
   }
 
   deleteContact = () => {
-    this.props.creation ? Router.push('/') : this.props.deleteContact(this.state.contact._id)
+    this.setState({ contact: {} })
+    if (!this.props.creation) {
+      this.props.deleteContact(this.state.contact._id)
+    }
   }
 
   handleMonth = e => {
@@ -110,50 +111,18 @@ class Contact extends Component {
   render() {
     const {
       state: { contact },
-      props: { loadingContact, creation },
+      props: { loading, creation },
       updateContact,
       deleteContact,
       handleChange,
       handleMonth,
     } = this
 
-    const getInput = this.getInput(contact)
+    const getInput = this.getInput(contact || {})
     const hasChanged = !equals(contact, this.props.contact)
 
-    return [
-      <div key="progress" className="progress">
-        {loadingContact && <div className="indeterminate" />}
-      </div>,
-      <div
-        key="main"
-        style={{
-          display: 'flex',
-          position: 'relative',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          paddingTop: '10px',
-        }}
-      >
-        <div
-          title="Retour à la liste"
-          style={{
-            position: 'absolute',
-            top: '15px',
-            left: '15px',
-            cursor: 'pointer',
-          }}
-        >
-          <Link href="/">
-            <i
-              style={{
-                fontSize: '40px',
-              }}
-              className="material-icons"
-            >
-              arrow_back_ios
-            </i>
-          </Link>
-        </div>
+    return (
+      <div>
         {contact && (
           <form
             style={{
@@ -169,7 +138,6 @@ class Contact extends Component {
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
-                // alignItems: 'center',
                 width: '90%',
               }}
             >
@@ -201,23 +169,6 @@ class Contact extends Component {
                         value: path(['name'], depts.find(d => d.code === contact.departement)) || '',
                       })}
                     </div>
-                    {/*<label htmlFor="dept">Département</label>
-                            <ul id="dropdownDept" className="dropdown-content">
-                              {map(({ code, name }) => {
-                                return (
-                                  <li key={code} onClick={handleDept}>
-                                    <a href="#!">{`${code} - ${name}`}</a>
-                                  </li>
-                                )
-                              }, depts)}
-                            </ul>
-                            <a id="dept" className="dropdown-trigger black-text" href="#!" data-target="dropdownDept">
-                              {`${path(['code'], depts.find(d => d.code === contact.departement))} - ${path(
-                                ['name'],
-                                depts.find(d => d.code === contact.departement)
-                              )}`}
-                              <i className="material-icons ">arrow_drop_down</i>
-                            </a>*/}
                   </div>
                 </fieldset>
                 <fieldset>
@@ -238,7 +189,6 @@ class Contact extends Component {
                     <div className="col s6">{getInput('cible', null, { icon: 'gps_fixed' })}</div>
                     <div className="col s6">{getInput('vu_le', 'Vu le', { icon: 'remove_red_eye' })}</div>
                   </div>
-
                   <div className="row">
                     <div className="col s12">
                       <div className="row">
@@ -315,11 +265,9 @@ class Contact extends Component {
             <div
               style={{
                 width: '90%',
-                // alignSelf: 'center',
                 display: 'flex',
                 flex: 1,
                 flexDirection: 'column',
-                // justifyContent: 'center',
               }}
             >
               <fieldset>
@@ -349,14 +297,14 @@ class Contact extends Component {
                     </a>
                   </div>
                 </div>
-                <a className="waves-effect waves-light btn red modal-trigger" href="#modal1">
+                <a className="waves-effect waves-light btn red modal-trigger" href="#modal1" disabled={loading}>
                   {creation ? 'Annuler' : 'Supprimer'}
                 </a>
 
                 <input
                   type="button"
                   className="waves-effect waves-light btn blue"
-                  disabled={!hasChanged}
+                  disabled={loading || !hasChanged}
                   onClick={updateContact}
                   id="save"
                   value="Sauver"
@@ -365,8 +313,8 @@ class Contact extends Component {
             </div>
           </form>
         )}
-      </div>,
-    ]
+      </div>
+    )
   }
 }
 
