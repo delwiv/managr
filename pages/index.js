@@ -48,9 +48,11 @@ class Index extends React.Component {
       return this.loadContacts()
     }
     if (this.props.current) {
-      const element = document.getElementById(`contact_${this.props.current}`)
-
-      element.scrollIntoView({ block: 'center' })
+      setTimeout(() => {
+        const element = document.getElementById(`contact_${this.props.current}`)
+        console.log({ element })
+        element.scrollIntoView({ block: 'center' })
+      }, 200)
     }
   }
 
@@ -123,12 +125,17 @@ class Index extends React.Component {
     ]
     if (displayFullContact) {
       result.push(
-        <tr key="embedContact">
+        <tr key="embedContact" id="embedContact">
           <td colSpan={9}>
             <Contact contactId={contact._id} />
           </td>
         </tr>
       )
+      setTimeout(() => {
+        const key = `contact_${i < 3 ? 0 : i - 2}` // for navbar offset
+        const element = document.getElementById(key)
+        element.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' })
+      }, 200)
     }
     return result
   }
