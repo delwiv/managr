@@ -9,6 +9,7 @@ import { Table } from 'react-materialize'
 import Navbar from '../src/components/navbar'
 
 import { loadContacts, setCurrent } from '../lib/contacts'
+import { sendEmails as _sendEmails } from '../lib/api'
 import { months } from '../src/config'
 import Contact from './contact'
 
@@ -56,14 +57,11 @@ class Index extends React.Component {
     }
   }
 
-  sendEmails = async () => {
-    const emails = this.state.checkedContacts.map(i => i.value.trim())
+  sendEmails = async toRecontact => {
+    console.log(this.state)
+    const emails = this.state.checkedContacts.map(i => i.email.trim())
     console.log({ emails })
-    const result = await fetch('http://localhost:3003/mails', {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails }),
-    })
+    const result = await _sendEmails({ emails, toRecontact })
     console.log({ result })
   }
 
