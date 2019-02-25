@@ -48,6 +48,14 @@ class Contact extends Component {
   }
 
   handleChange = field => event => {
+    if (field === 'cp') {
+      return this.setState({
+        contact: {
+          ...this.state.contact,
+          [field]: +event.target.value,
+        },
+      })
+    }
     this.setState({
       contact: {
         ...this.state.contact,
