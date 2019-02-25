@@ -94,7 +94,7 @@ class Contact extends Component {
             <input
               id={field}
               name={field}
-              value={value}
+              value={field === 'departement' ? +value : value}
               onChange={this.handleChange(field)}
               type="text"
               className="validate"
@@ -166,7 +166,7 @@ class Contact extends Component {
                     <div className="col s8">
                       {getInput('departement_label', 'Département', {
                         icon: 'informations',
-                        value: path(['name'], depts.find(d => d.code === contact.departement)) || '',
+                        value: path(['name'], depts.find(d => +d.code === +contact.departement)) || '',
                       })}
                     </div>
                   </div>

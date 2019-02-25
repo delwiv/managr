@@ -107,7 +107,7 @@ class Index extends React.Component {
             <span />
           </label>
         </td>
-        <td>{contact.departement}</td>
+        <td>{+contact.departement}</td>
         <td>{contact.ville}</td>
         <td className="openContact" onClick={() => this.onClickContact(contact._id, i)}>
           {contact.nom}
