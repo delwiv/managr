@@ -199,14 +199,14 @@ class Contact extends Component {
                             className="dropdown-trigger black-text validate"
                             href="#!"
                             style={{ marginLeft: '45px' }}
-                            data-target="dropdownMonths"
+                            data-target="dropdownMonthsContact"
                           >
                             {months[contact.mois_contact]}
                             <i className="material-icons ">arrow_drop_down</i>
                           </a>
 
                           <div className="input-field">
-                            <ul id="dropdownMonths" className="dropdown-content">
+                            <ul id="dropdownMonthsContact" className="dropdown-content">
                               {months.map((month, i) => (
                                 <li key={month}>
                                   <a id={i} href="#!" onClick={handleMonth}>
