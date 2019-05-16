@@ -12,15 +12,13 @@ export default class MyDocument extends Document {
       <html>
         <Head>
           <style>{`body { margin: 0 } /* custom! */`}</style>
-          <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-          <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-          />
+          <link href="/static/material-font.css" rel="stylesheet" />
+          <link rel="stylesheet" href="/static/materialize.min.css" />
+          <link rel="icon" type="image/png" href="/static/favicon.png" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         </Head>
         <body className="custom_class">
-          <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" />
+          <script src="/static/materialize.min.js" />
           <Main />
           <NextScript />
         </body>

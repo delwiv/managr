@@ -4,9 +4,13 @@ import { connect } from 'react-redux'
 import debounce from 'lodash.debounce'
 import Link from 'next/link'
 
-import { loadContacts, setQuery, setLazyLoad } from '../../lib/contacts'
+import { loadContacts, setQuery, setLazyLoad, sendMails } from '../../lib/contacts'
 import { months } from '../config'
 import './navbar.css'
+
+const types = {
+  '4bands': '4 groupes (par défaut)',
+}
 
 class Navbar extends Component {
   static propTypes = {
@@ -22,6 +26,8 @@ class Navbar extends Component {
     query: T.string,
   }
 
+  state = { mailType: types[0], toRecontactDelay: 2 }
+
   onChange = e => {
     const value = e.target.value
     this.props.setQuery(value.length ? value : null)
@@ -33,12 +39,65 @@ class Navbar extends Component {
     this.props.search({ q: value })
   }, 400)
 
+  sendMails = () => {
+    const { selected, sendMails } = this.props
+    const { mailType, toRecontactDelay } = this.state
+    sendMails({ emails: selected.map(contact => contact.email), type: mailType, toRecontactDelay })
+  }
+
   render() {
     const {
-      props: { query, total, loadingContacts, selected, sendMails },
+      props: { query, total, loadingContacts, selected },
+      state: { mailType, toRecontactDelay },
     } = this
     return [
       <div key="nav" className="navbar-fixed">
+        <div id="modalMail" className="modal">
+          <div className="modal-content">
+            <h4>Envoi de mails</h4>
+            <h5>
+              {selected.length} contact
+              {selected.length > 1 ? 's' : ''} selectionné
+              {selected.length > 1 ? 's' : ''}
+            </h5>
+          </div>
+          <div className="row">
+            <div className="col s3">
+              <p>Type de mail</p>
+            </div>
+            <div className="col s9">
+              <select value={mailType} onChange={event => this.setState({ mailType: event.target.value })}>
+                {Object.keys(types).map(type => (
+                  <option key={type} value={type}>
+                    {types[type]}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="row">
+            <div className="col s3">
+              <p>Recontacter dans</p>
+            </div>
+            <div className="col s9">
+              <select
+                value={toRecontactDelay}
+                onChange={event => this.setState({ toRecontactDelay: event.target.value })}
+              >
+                {new Array(12).fill(0).map((_, i) => (
+                  <option key={i} value={i + 1}>
+                    {i + 1} mois
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <a onClick={this.sendMails} className="modal-close waves-effect waves-green btn-flat">
+              Envoyer
+            </a>
+          </div>
+        </div>
         <ul id="dropdownMonths" className="dropdown-content">
           {months.map((month, i) => (
             <li key={month}>
@@ -48,46 +107,53 @@ class Navbar extends Component {
             </li>
           ))}
         </ul>
-        <ul id="dropdownActions" className="dropdown-content">
-          <li>
-            <a onClick={sendMails}>
-              <i className="material-icons prefix">alternate_email</i>
-              Envoi emails
-            </a>
-          </li>
-          <li>
-            <Link href="/contact">
-              <a>
-                <i className="material-icons prefix">person_add</i>
-                Nouvelle fiche
-              </a>
-            </Link>
-          </li>
-        </ul>
-        <nav>
-          <div className="nav-wrapper">
-            <div className="input-field" style={{ flex: 2 }}>
-              <input ref={this.q} value={query || ''} id="search" type="search" required onChange={this.onChange} />
-              <label className="label-icon" htmlFor="search">
-                <i className="material-icons">search</i>
-              </label>
+        <div className="navbar-fixed">
+          <nav>
+            <div className="nav-wrapper">
+              <div className="input-field" style={{ flex: 2 }}>
+                <input ref={this.q} value={query || ''} id="search" type="search" required onChange={this.onChange} />
+                <label className="label-icon" htmlFor="search">
+                  <i className="material-icons">search</i>
+                </label>
+              </div>
+              <ul className="right">
+                <li>
+                  <a className="dropdown-trigger" href="#!" data-target="dropdownMonths">
+                    Mois
+                    <i className="material-icons">arrow_drop_down</i>
+                  </a>
+                </li>
+                <li>
+                  <a className="modal-trigger" href="#modalMail">
+                    <i className="material-icons">email</i>
+                    Envoi mails
+                  </a>
+                </li>
+                <li>
+                  <Link href="/contact">
+                    <a>
+                      <i className="material-icons">person_add</i>
+                      Nouvelle fiche
+                    </a>
+                  </Link>
+                </li>
+                <li>
+                  <a href={null}>
+                    <span>{`${total} contacts`}</span>
+                  </a>
+                </li>
+                <li>
+                  <a href={null}>
+                    <span>{`${selected.length} Sélectionné${selected.length > 1 ? 's' : ''}`}</span>
+                  </a>
+                </li>
+              </ul>
             </div>
-            <div style={{ paddingRight: '20px', paddingLeft: '20px' }}>
-              <a className="dropdown-trigger" href="#!" data-target="dropdownMonths">
-                Mois
-                <i className="material-icons ">arrow_drop_down</i>
-              </a>
-              <strong> {`${total} contacts`}</strong>
-              <a className="dropdown-trigger right" href="#!" data-target="dropdownActions">
-                <i className="material-icons ">menu</i>
-                {selected.length ? <span>{`${selected.length} Sélectionnés`}</span> : undefined}
-              </a>
+            <div key="progress" className="progress">
+              {loadingContacts && <div className="indeterminate" />}
             </div>
-          </div>
-          <div key="progress" className="progress">
-            {loadingContacts && <div className="indeterminate" />}
-          </div>
-        </nav>
+          </nav>
+        </div>
       </div>,
     ]
   }
@@ -105,5 +171,6 @@ export default connect(
     setQuery: q => dispatch(setQuery(q)),
     setLazyLoad: q => dispatch(setLazyLoad(q)),
     search: params => dispatch(loadContacts(params)),
+    sendMails: params => dispatch(sendMails(params)),
   })
 )(Navbar)

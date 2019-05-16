@@ -87,7 +87,7 @@ class Index extends React.Component {
   selectContact = (contact, i) => e => {
     const checked = e.target.checked
 
-    const contacts = [...this.state.contacts]
+    const contacts = this.state.contacts
     const current = contacts[i]
     current.checked = checked
 
@@ -96,6 +96,10 @@ class Index extends React.Component {
     else checkedContacts = checkedContacts.filter(c => c._id !== current._id)
     this.setState({ contacts, checkedContacts })
   }
+
+  format = new Intl.DateTimeFormat('fr-FR').format
+
+  getDate = date => this.format(new Date(date))
 
   getRow = (current, unfold) => (contact, i) => {
     const displayFullContact = unfold.some(c => c === contact._id)
@@ -107,7 +111,7 @@ class Index extends React.Component {
             <span />
           </label>
         </td>
-        <td>{+contact.departement}</td>
+        <td>{contact.departement}</td>
         <td>{contact.ville}</td>
         <td className="openContact" onClick={() => this.onClickContact(contact._id, i)}>
           {contact.nom}
@@ -116,7 +120,33 @@ class Index extends React.Component {
         <td>
           <a href={`mailto:${contact.mail}?SUBJECT=Jazz`}>{contact.mail}</a>
         </td>
-        <td>{contact.envoi_mail}</td>
+        <td>
+          {contact.envoi_mail}
+          {contact.sendMailStatus ? (
+            contact.sendMailStatus.error ? (
+              <i
+                className="material-icons prefix error"
+                title={`${this.getDate(contact.sendMailStatus.date)} - ${contact.sendMailStatus.error}`}
+              >
+                mail
+              </i>
+            ) : contact.sendMailStatus.status === 'sending' ? (
+              <i
+                className="material-icons warning prefix"
+                title={`Mail en attente depuis le ${this.getDate(contact.sendMailStatus.date)}`}
+              >
+                mail
+              </i>
+            ) : (
+              <i
+                className="material-icons prefix"
+                title={`Mail envoyé le ${this.getDate(contact.sendMailStatus.date)}`}
+              >
+                mail
+              </i>
+            )
+          ) : null}
+        </td>
         <td>{months[+contact.mois_contact]}</td>
         <td>{contact.vu_le}</td>
       </tr>,
