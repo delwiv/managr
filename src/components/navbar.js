@@ -16,6 +16,7 @@ class Navbar extends Component {
   static propTypes = {
     search: T.func.isRequired,
     count: T.number.isRequired,
+    emailsSent: T.number.isRequired,
     total: T.number.isRequired,
     setQuery: T.func.isRequired,
     setLazyLoad: T.func.isRequired,
@@ -34,10 +35,7 @@ class Navbar extends Component {
     this.search()
   }
 
-  search = debounce(() => {
-    const value = this.props.query
-    this.props.search({ q: value })
-  }, 400)
+  search = debounce(() => this.props.search({ q: this.props.query }), 400)
 
   sendMails = () => {
     const { selected, sendMails } = this.props
@@ -47,18 +45,21 @@ class Navbar extends Component {
 
   render() {
     const {
-      props: { query, total, loadingContacts, selected },
+      props: { query, total, loadingContacts, selected, emailsSent },
       state: { mailType, toRecontactDelay },
     } = this
     return [
       <div key="nav" className="navbar-fixed">
         <div id="modalMail" className="modal">
           <div className="modal-content">
-            <h4>Envoi de mails</h4>
+            <h4>Envoi de mails </h4>
             <h5>
               {selected.length} contact
               {selected.length > 1 ? 's' : ''} selectionné
-              {selected.length > 1 ? 's' : ''}
+              {selected.length > 1 ? 's' : ''} ({emailsSent}
+              /500 email
+              {emailsSent > 1 ? 's' : ''} envoyé
+              {emailsSent > 1 ? 's' : ''})
             </h5>
           </div>
           <div className="row">
@@ -164,6 +165,7 @@ export default connect(
     query: state.query,
     count: state.contacts.length,
     total: state.count,
+    emailsSent: state.emailsSent,
     lazyLoad: state.lazyLoad,
     loadingContacts: state.loadingContacts,
   }),

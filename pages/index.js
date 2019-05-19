@@ -2,7 +2,6 @@
 
 import React from 'react'
 import T from 'prop-types'
-import fetch from 'isomorphic-unfetch'
 import './list.css'
 import { connect } from 'react-redux'
 import { Table } from 'react-materialize'
@@ -52,17 +51,6 @@ class Index extends React.Component {
 
       element.scrollIntoView({ block: 'center' })
     }
-  }
-
-  sendEmails = async () => {
-    const emails = this.state.checkedContacts.map(i => i.value.trim())
-    console.log({ emails })
-    const result = await fetch('http://localhost:3003/mails', {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails }),
-    })
-    console.log({ result })
   }
 
   onClickContact = (contactId, i) => {
@@ -169,11 +157,10 @@ class Index extends React.Component {
       state: { contacts, checkedContacts, unfold },
       getRow,
       selectAll,
-      sendEmails,
     } = this
     const rows = contacts.map(getRow(current, unfold))
     return [
-      <Navbar key="navbar" selected={checkedContacts} sendEmails={sendEmails} />,
+      <Navbar key="navbar" selected={checkedContacts} />,
       <div key="list" style={{ paddingTop: 0 }}>
         <Table>
           <thead>
