@@ -28,7 +28,12 @@ label {
 input {
   flex: 4;
 }
-.controls-wrap {
+
+input[type="text"]::placeholder {
+  color: black;
+}
+
+input.controls-wrap {
   display: flex;
   flex: 1;
   width: 90vw;

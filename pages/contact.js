@@ -4,11 +4,11 @@ import React, { Component } from 'react'
 import T from 'prop-types'
 import { connect } from 'react-redux'
 import { equals, path } from 'ramda'
+import Link from 'next/link'
 
 import { viewContact, updateContact, deleteContact } from '../lib/contacts'
 import { months, depts } from '../src/config'
 import './contact.css'
-import Link from 'next/link'
 
 class Contact extends Component {
   static propTypes = {
@@ -94,7 +94,8 @@ class Contact extends Component {
             <input
               id={field}
               name={field}
-              value={field === 'departement' ? +value : value}
+              placeholder={label}
+              value={field === 'departement' ? +(value || '44') : value}
               onChange={this.handleChange(field)}
               type="text"
               className="validate"
@@ -297,6 +298,9 @@ class Contact extends Component {
                     </a>
                   </div>
                 </div>
+                <Link href="/">
+                  <a className="waves-effect waves-light btn"> Retour liste</a>
+                </Link>
                 <a className="waves-effect waves-light btn red modal-trigger" href="#modal1" disabled={loading}>
                   {creation ? 'Annuler' : 'Supprimer'}
                 </a>
