@@ -63,10 +63,16 @@ class Index extends React.Component {
   selectAll = e => {
     const checked = e.target.checked
     const checkedContacts = []
+    let i = 0
     this.setState({
-      contacts: this.state.contacts.map((c, i) => {
-        const lessThan500 = i < 500
-        if (checked && lessThan500) checkedContacts.push({ _id: c._id, email: c.mail })
+      contacts: this.state.contacts.map(c => {
+        const lessThan500 = i < 490
+        if (checked && lessThan500) {
+          checkedContacts.push({ _id: c._id, email: c.mail })
+          const { mail, mail2, mail3 } = c
+          const toAdd = [mail, mail2, mail3].filter(m => !!m).length
+          i += toAdd
+        }
         return { ...c, checked: lessThan500 && checked }
       }),
       checkedContacts,
@@ -94,6 +100,9 @@ class Index extends React.Component {
     const displayFullContact = unfold.some(c => c === contact._id)
     const result = [
       <tr id={`contact_${i}`} key={contact._id} className={current === i || contact.checked ? 'row highlight' : 'row'}>
+        <td align="center">
+          <label>{i + 1}</label>
+        </td>
         <td align="center" className="action-checkbox">
           <label>
             <input checked={contact.checked} type="checkbox" onChange={this.selectContact(contact, i)} />
@@ -166,6 +175,7 @@ class Index extends React.Component {
         <Table>
           <thead>
             <tr>
+              <th>#</th>
               <th>
                 <label>
                   <input type="checkbox" onChange={selectAll} />
