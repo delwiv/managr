@@ -2,10 +2,8 @@
   "apps": [
     {
       "name": "managr-web",
-      "script": "yarn",
-      "args": "start",
-      "instances": "1",
-      "exec_mode": "fork"
+      "script": "pnpm",
+      "args": "start"
     }
   ]
 }
