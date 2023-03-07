@@ -9,7 +9,8 @@ import { months } from '../config'
 import './navbar.css'
 
 const types = {
-  '4bands': '4 groupes (par défaut)',
+  '4bands': '7 groupes (par défaut)',
+  'jazzola': 'Jazzola'
 }
 
 class Navbar extends Component {
