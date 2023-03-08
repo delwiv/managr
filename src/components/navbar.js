@@ -50,56 +50,57 @@ class Navbar extends Component {
       state: { mailType, toRecontactDelay },
     } = this
     return [
-      <div key="nav" className="navbar-fixed">
-        <div id="modalMail" className="modal">
-          <div className="modal-content">
-            <h4>Envoi de mails </h4>
-            <h5>
-              {selected.length} contact
-              {selected.length > 1 ? 's' : ''} selectionné
-              {selected.length > 1 ? 's' : ''} ({emailsSent}
-              /500 email
-              {emailsSent > 1 ? 's' : ''} envoyé
-              {emailsSent > 1 ? 's' : ''})
-            </h5>
+      <div key="modalMail" id="modalMail" className="modal" style={{overflowY: 'visible'}}>
+        <div className="modal-content">
+          <h4>Envoi de mails </h4>
+          <h5>
+            {selected.length} contact
+            {selected.length > 1 ? 's' : ''} selectionné
+            {selected.length > 1 ? 's' : ''} ({emailsSent}
+            /500 email
+            {emailsSent > 1 ? 's' : ''} envoyé
+            {emailsSent > 1 ? 's' : ''})
+          </h5>
+        <div className="row">
+          <div className="col s3">
+            <p>Type de mail</p>
           </div>
-          <div className="row">
-            <div className="col s3">
-              <p>Type de mail</p>
-            </div>
-            <div className="col s9">
-              <select value={mailType} onChange={event => this.setState({ mailType: event.target.value })}>
-                {Object.keys(types).map(type => (
-                  <option key={type} value={type}>
-                    {types[type]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col s3">
-              <p>Recontacter dans</p>
-            </div>
-            <div className="col s9">
-              <select
-                value={toRecontactDelay}
-                onChange={event => this.setState({ toRecontactDelay: event.target.value })}
-              >
-                {new Array(12).fill(0).map((_, i) => (
-                  <option key={i} value={i + 1}>
-                    {i + 1} mois
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="modal-footer">
-            <a onClick={this.sendMails} className="modal-close waves-effect waves-green btn-flat">
-              Envoyer
-            </a>
+          <div className="col s9">
+            <select value={mailType} onChange={event => this.setState({ mailType: event.target.value })}>
+              {Object.keys(types).map(type => (
+                <option key={type} value={type}>
+                  {types[type]}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+        <div className="row">
+          <div className="col s3">
+            <p>Recontacter dans</p>
+          </div>
+          <div className="col s9">
+            <select
+              style={{zIndex: 10000}}
+              value={toRecontactDelay}
+              onChange={event => this.setState({ toRecontactDelay: event.target.value })}
+            >
+              <option value={null}>Ne pas modifier </option>
+              {new Array(12).fill(0).map((_, i) => (<option key={i} value={i + 1}>
+                  {i + 1} mois
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        </div>
+        <div className="modal-footer">
+          <a onClick={this.sendMails} className="modal-close waves-effect waves-green btn-flat">
+            Envoyer
+          </a>
+        </div>
+      </div>,
+      <div key="nav" className="navbar-fixed">
         <ul id="dropdownMonths" className="dropdown-content">
           {months.map((month, i) => (
             <li key={month}>
